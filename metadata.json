@@ -1,0 +1,7 @@
+{
+  "name": "Online Store",
+  "description": "سیستەمی فرۆشگای ئۆنلاین بە هاوکاتکردنی ڕاستەوخۆ، بەڕێوەبردنی داواکاری و کاڵاکان",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

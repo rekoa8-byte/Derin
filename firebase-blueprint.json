@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "StoreState": {
+      "title": "StoreState",
+      "description": "Unified store state synced across all devices and shared links",
+      "type": "object",
+      "properties": {
+        "shopName": { "type": "string" },
+        "shopLogo": { "type": "string" },
+        "soundEnabled": { "type": "boolean" },
+        "lastUpdated": { "type": "number" },
+        "products": { "type": "array" },
+        "categories": { "type": "array" },
+        "orders": { "type": "array" },
+        "cities": { "type": "array" },
+        "promoCodes": { "type": "array" },
+        "contactInfo": { "type": "object" }
+      },
+      "required": ["shopName", "products", "categories", "orders"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Individual customer order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "city": { "type": "string" },
+        "address": { "type": "string" },
+        "productId": { "type": "number" },
+        "productName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["id", "customerName", "phone", "productId", "quantity"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product in store catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "name": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "price": { "type": "number" },
+        "stockStatus": { "type": "string" },
+        "discount": { "type": "number" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "video": { "type": "string" },
+        "likes": { "type": "number" }
+      },
+      "required": ["id", "name", "price"]
+    }
+  },
+  "firestore": {
+    "/store/main": {
+      "schema": "StoreState",
+      "description": "The unified real-time store state shared across dev and production links"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Direct customer orders"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Direct store products"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Derin__Collection",
+  "short_name": "Derin__Collection",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#414b28",
+  "icons": [
+    {
+      "src": "/derin-logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Online Store</title>
+    <meta name="description" content="سیستەمی فرۆشگای ئۆنلاین بە هاوکاتکردنی ڕاستەوخۆ، بەڕێوەبردنی داواکاری و کاڵاکان" />
+    <meta property="og:title" content="Online Store" />
+    <meta property="og:description" content="سیستەمی فرۆشگای ئۆنلاین بە هاوکاتکردنی ڕاستەوخۆ، بەڕێوەبردنی داواکاری و کاڵاکان" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Network preconnects for ultra-fast load on all telecom networks, FTTH fiber & mobile data -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css';" />
+    <link rel="icon" type="image/svg+xml" id="appFavicon" href="/derin-logo.svg" />
+    <link rel="apple-touch-icon" id="appAppleTouchIcon" href="/derin-logo.svg" />
+    <link rel="manifest" id="appManifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Derin__Collection" />
+    <meta name="theme-color" content="#414b28" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Great+Vibes&display=swap" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/src/theme.css" />
+    <script>
+        // Early global bootstrap to guarantee inline handlers always work immediately
+        window.shopApp = window.shopApp || {};
+        window.shopApp.toggleLangMenu = function(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
+            var menu = document.getElementById('langDropdownMenu');
+            if (menu) {
+                var isHidden = menu.style.display === 'none' || !menu.style.display;
+                menu.style.display = isHidden ? 'flex' : 'none';
+            }
+        };
+        window.shopApp.closeLangMenu = function() {
+            var menu = document.getElementById('langDropdownMenu');
+            if (menu) menu.style.display = 'none';
+        };
+        window.shopApp.selectLanguage = function(lang) {
+            window.shopApp.closeLangMenu();
+            if (typeof window.shopApp.setLanguage === 'function') {
+                window.shopApp.setLanguage(lang);
+            }
+        };
+        // Side menu (list) - kept in the early bootstrap so it always opens, even before the app module finishes loading
+        window.shopApp.openMenu = function() {
+            document.body.classList.add('menu-open');
+            var m = document.getElementById('sideMenu'); if (m) m.setAttribute('aria-hidden', 'false');
+            var b = document.getElementById('menuToggleBtn'); if (b) b.setAttribute('aria-expanded', 'true');
+            var c = m && m.querySelector('.nb-drawer-close'); if (c) c.focus();
+        };
+        window.shopApp.closeMenu = function() {
+            if (!document.body.classList.contains('menu-open')) return;
+            document.body.classList.remove('menu-open');
+            var m = document.getElementById('sideMenu'); if (m) m.setAttribute('aria-hidden', 'true');
+            var b = document.getElementById('menuToggleBtn'); if (b) { b.setAttribute('aria-expanded', 'false'); b.focus(); }
+        };
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') window.shopApp.closeMenu(); });
+        window.shopApp.selectCatEmoji = function(emoji) {
+            var el = document.getElementById('newCatIcon') || document.getElementById('categoryIconInput');
+            if (el) {
+                el.value = emoji;
+                el.focus();
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+        window.shopApp.handleCatImageFile = window.shopApp.handleCatImageFile || function() {};
+        window.shopApp.removeCatImage = window.shopApp.removeCatImage || function() {};
+        window.selectCatEmoji = window.shopApp.selectCatEmoji;
+    </script>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN (HIDDEN BY DEFAULT - SHOP OPENS DIRECTLY FOR CUSTOMERS) -->
+    <div id="loginPage" class="container" style="display:none;">
+        <div class="login-box">
+            <div class="login-brand-logo-wrap">
+                <img src="/derin-logo.svg" alt="Shop Logo" class="login-brand-logo-img" />
+            </div>
+            <h2><span id="loginTitle">Derin__Collection</span></h2>
+            <p style="color:var(--text-secondary); text-align:center; margin-bottom:16px; font-size:0.95rem;">چوونەژوورەوەی بەڕێوەبەر</p>
+            <div class="form-group" id="adminUsernameGroup">
+                <label data-i18n="adminUsernameLabel">ناوی بەکارهێنەر (Username)</label>
+                <input type="text" id="loginUsername" autocomplete="username" />
+            </div>
+            <div class="form-group" id="adminPasswordGroup">
+                <label data-i18n="passwordLabel">وشەی نهێنی (Password)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" autocomplete="current-password" />
+                    <button type="button" class="toggle-password" onclick="window.shopApp.togglePassword('loginPassword', this)"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <button class="btn-primary" id="loginBtn"><i class="fas fa-sign-in-alt"></i> <span data-i18n="loginBtn">Login</span></button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (OPENS IMMEDIATELY ON MOBILE, PC & IPAD) -->
+    <div id="appContainer">
+
+        <header class="header nb-header">
+            <div class="nb-header__inner">
+                <!-- ACTIONS: menu list, login / logout, cart -->
+                <div class="nb-actions">
+                    <button type="button" class="nb-icon-btn" id="menuToggleBtn" onclick="window.shopApp.openMenu()" aria-label="لیست" aria-controls="sideMenu" aria-expanded="false" title="لیست">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button type="button" class="nb-icon-btn" onclick="window.shopApp.openAdminLoginModal()" id="adminLoginBtn" title="چوونەژوورەوەی بەڕێوەبەر" aria-label="چوونەژوورەوەی بەڕێوەبەر">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button type="button" class="nb-icon-btn" onclick="window.shopApp.logout()" id="logoutBtn" style="display:none;" title="دەرچوون لە ئەدمین" aria-label="دەرچوون">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    <button type="button" class="nb-icon-btn" id="headerSearchCartBtn" onclick="window.shopApp.switchPage('cart')" title="سەبەتەی کڕین" aria-label="سەبەتەی کڕین">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="search-cart-badge" id="searchCartBadge">0</span>
+                    </button>
+                </div>
+
+                <!-- SHOP LOGO + NAME (Derin) -->
+                <a href="#" class="nb-brand" onclick="window.shopApp.switchPage('products')" id="shopLogo" title="Derin Collection">
+                    <span class="nb-emblem">
+                        <img src="/derin-logo.svg" alt="Shop Logo" class="brand-logo-img" id="shopBrandLogoImg" />
+                    </span>
+                    <span class="nb-wordmark">
+                        <span class="nb-word-main" id="shopNameDisplay" dir="auto">Derin</span>
+                        <span class="nb-word-sub" id="shopTaglineDisplay" dir="auto">Collection</span>
+                    </span>
+                </a>
+            </div>
+        </header>
+
+        <!-- SIDE MENU (LIST): theme, share, language, admin identity -->
+        <div class="nb-backdrop" id="menuBackdrop" onclick="window.shopApp.closeMenu()"></div>
+        <aside class="nb-drawer" id="sideMenu" role="dialog" aria-modal="true" aria-labelledby="sideMenuTitle" aria-hidden="true">
+            <div class="nb-drawer-head">
+                <h2 id="sideMenuTitle" data-i18n="menuTitle">لیست</h2>
+                <button type="button" class="nb-icon-btn nb-drawer-close" onclick="window.shopApp.closeMenu()" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="nb-drawer-body">
+                <div id="adminTopLogoWrap" class="admin-top-logo nb-admin-card" style="display:none;" title="ڕێباز طیب مصطفی">
+                    <img src="/rebaz-rmt-logo.jpg" alt="ڕێباز طیب مصطفی" class="admin-top-logo-img permanent-rmt-logo" id="fixedAdminLogoImg" />
+                    <span class="admin-top-logo-caption">ڕێباز طیب مصطفی</span>
+                </div>
+
+                <button type="button" class="nb-menu-item" id="themeToggle" onclick="window.shopApp.toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                    <span data-i18n="menuTheme">دۆخی تاریک / ڕووناک</span>
+                </button>
+                <button type="button" class="nb-menu-item" id="shareStoreLinkBtn" onclick="window.shopApp.shareStoreLink(); window.shopApp.closeMenu();">
+                    <i class="fas fa-share-alt"></i>
+                    <span data-i18n="menuShare">شێرکردنی فرۆشگا</span>
+                </button>
+
+                <div class="nb-menu-group">
+                    <div class="nb-menu-label"><i class="fas fa-globe"></i><span data-i18n="menuLanguage">زمان</span></div>
+                    <div class="nb-lang-row">
+                        <button type="button" class="nb-lang-btn active" data-lang="ku" aria-pressed="true" onclick="window.shopApp.selectLanguage('ku'); window.shopApp.closeMenu();">کوردی</button>
+                        <button type="button" class="nb-lang-btn" data-lang="ar" aria-pressed="false" onclick="window.shopApp.selectLanguage('ar'); window.shopApp.closeMenu();">العربية</button>
+                        <button type="button" class="nb-lang-btn" data-lang="en" aria-pressed="false" onclick="window.shopApp.selectLanguage('en'); window.shopApp.closeMenu();">English</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="container">
+
+            <!-- DESKTOP NAVIGATION TABS -->
+            <div class="nav-tabs" id="desktopNav" style="margin-bottom:6px;">
+                <button class="active" data-page="products"><div class="nav-icon-wrap"><i class="fas fa-store"></i></div> <span data-i18n="navProducts">Products</span></button>
+                <button data-page="orders" id="navOrdersBtn"><div class="nav-icon-wrap"><i class="fas fa-clipboard-list"></i> <span class="badge" id="orderBadge" style="display:none;"></span></div> <span data-i18n="navOrders">Orders</span></button>
+                <button data-page="add" id="navAddBtn"><div class="nav-icon-wrap"><i class="fas fa-plus-circle"></i></div> <span data-i18n="navAdd">Add</span></button>
+                <button data-page="settings" id="navSettingsBtn"><div class="nav-icon-wrap"><i class="fas fa-cog"></i></div> <span data-i18n="navSettings">Settings</span></button>
+                <button data-page="cart" id="navCartBtn" style="display:none;"><div class="nav-icon-wrap"><i class="fas fa-shopping-cart"></i> <span class="cart-badge" id="cartBadge">0</span></div> <span data-i18n="navCart">Cart</span></button>
+                <button data-page="myorders" id="navMyOrdersBtn" style="display:none;"><div class="nav-icon-wrap"><i class="fas fa-list-ul"></i> <span class="badge" id="myOrdersBadge" style="display:none;"></span></div> <span data-i18n="myOrdersLabel">My Orders</span></button>
+                <button data-page="contact" id="navContactBtn" style="display:none;"><div class="nav-icon-wrap"><i class="fas fa-address-card"></i></div> <span data-i18n="navContact">Contact</span></button>
+            </div>
+
+            <!-- PAGE: PRODUCTS -->
+            <section class="page active" id="page-products">
+                <h2 class="nb-section-title" id="categoriesTitle">پۆلەکانی Derin Collection</h2>
+                <div class="category-scroll-wrapper" id="categoryScrollWrapper">
+                    <div class="category-scroll" id="categoryScroll"></div>
+                </div>
+
+                <!-- SEARCH (moved under the categories, as in the reference) -->
+                <label class="nb-search" for="searchInput">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="searchInput" placeholder="گەڕان بۆ کاڵا..." enterkeyhint="search" autocomplete="off" oninput="window.shopApp.applyFilters()" />
+                </label>
+
+                <div class="category-divider-wrap" id="categoryDividerWrap">
+                    <div class="category-divider-line"></div>
+                    <span class="result-count" id="resultCount">0 products</span>
+                </div>
+                <div class="product-grid" id="productGrid"></div>
+            </section>
+
+            <!-- PAGE: ORDERS (ADMIN) -->
+            <section class="page" id="page-orders">
+                <div class="orders-page-header">
+                    <div class="orders-page-title-wrap">
+                        <h2><i class="fas fa-clipboard-list" style="color:var(--accent);"></i> <span data-i18n="ordersTitle">Orders</span></h2>
+                        <span class="orders-count-badge" id="orderCount">0 orders</span>
+                    </div>
+                    <div class="orders-toolbar-actions">
+                        <button type="button" class="btn-toolbar-action" onclick="window.shopApp.printAllInvoices()" id="printAllInvoicesBtn" title="Print All Invoices">
+                            <i class="fas fa-print"></i> <span data-i18n="printAllInvoicesBtn">چاپی هەموو پسوولەکان</span>
+                        </button>
+                        <button type="button" class="btn-toolbar-action" onclick="window.shopApp.toggleSound()" id="adminSoundToggleBtn" title="Sound Alert Toggle">
+                            <i class="fas fa-volume-up" id="adminSoundIcon"></i> <span id="adminSoundText" data-i18n="soundNotification">دەنگی ئاگاداری</span>
+                        </button>
+                        <button type="button" class="btn-toolbar-action" onclick="window.shopApp.testSound()" id="adminTestSoundBtn" title="Test Alert Sound">
+                            <i class="fas fa-bell"></i> <span data-i18n="testSound">تاقیکردنەوە</span>
+                        </button>
+                        <button type="button" class="btn-toolbar-action" onclick="window.shopApp.clearAllOrdersPrompt()" id="clearAllOrdersBtn" title="Reset Orders" style="color:#ef4444;">
+                            <i class="fas fa-trash-alt"></i> <span data-i18n="resetOrdersBtn">سفرکردنەوەی داواکارییەکان</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="orders-list" id="ordersList"></div>
+            </section>
+
+            <!-- PAGE: ADD (PRODUCT / CATEGORY) -->
+            <section class="page" id="page-add">
+                <div class="add-subtabs">
+                    <button type="button" class="add-subtab-btn active" id="tabBtnAddProduct" onclick="window.shopApp.switchAddSubTab('product')">
+                        <i class="fas fa-box-open"></i> <span data-i18n="tabAddProduct">زیادکردنی کاڵا</span>
+                    </button>
+                    <button type="button" class="add-subtab-btn" id="tabBtnAddCategory" onclick="window.shopApp.switchAddSubTab('category')">
+                        <i class="fas fa-tags"></i> <span data-i18n="tabAddCategory">زیادکردنی پۆل</span>
+                    </button>
+                </div>
+
+                <!-- SUB-TAB 1: ADD PRODUCT -->
+                <div id="subTabAddProduct">
+                    <h2 style="margin-bottom:12px;"><i class="fas fa-plus-circle" style="color:var(--accent);"></i> <span data-i18n="addTitle">Add New Product</span></h2>
+                    <form id="addProductForm" style="max-width:640px;">
+                        <div class="form-group">
+                            <label data-i18n="prodNameLabel">Product Name *</label>
+                            <input type="text" id="prodName" placeholder="e.g. Luxury Watch" required />
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="prodCategoryLabel">Category *</label>
+                                <select id="prodCategory" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="prodPriceLabel">Price (IQD) *</label>
+                                <input type="number" id="prodPrice" placeholder="e.g. 450000" required />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="prodStockStatusLabel">Stock Status *</label>
+                                <select id="prodStockStatus" required>
+                                    <option value="in-stock" data-i18n="stockIn">In Stock</option>
+                                    <option value="out-of-stock" data-i18n="stockOut">Out of Stock</option>
+                                    <option value="soon" data-i18n="stockSoon">Coming Soon</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="prodDiscountLabel">Discount %</label>
+                                <input type="number" id="prodDiscount" placeholder="e.g. 10" value="0" min="0" max="90" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="prodDescLabel">Description</label>
+                            <textarea id="prodDesc" placeholder="Short description..." rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="prodImageLabel">Product Image</label>
+                            <div class="file-input-wrap">
+                                <input type="file" id="prodImage" accept="image/*" />
+                            </div>
+                            <img id="imagePreview" class="image-preview" alt="Preview" />
+                        </div>
+
+                        <!-- USER REQUEST: DANANI VIDEO BO KALA (VIDEO FILE OR URL SELECTION) -->
+                        <div class="form-group" style="background:var(--bg-card); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                            <label style="color:var(--accent); font-weight:700; display:flex; align-items:center; gap:6px;">
+                                <i class="fas fa-video"></i> <span data-i18n="prodVideoLabel">Product Video (File or URL)</span>
+                            </label>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+                                فایلی ڤیدیۆی کاڵاکەت هەڵبژێرە یان لینکی ڤیدیۆ دابنێ تا کریاران بتوانن لە پەرەی سەرەکی بینەری بن:
+                            </p>
+                            <div class="file-input-wrap" style="margin-bottom:8px;">
+                                <input type="file" id="prodVideoFile" accept="video/*" />
+                            </div>
+                            <input type="url" id="prodVideoUrl" placeholder="Or paste video link (https://...mp4)" style="margin-bottom:6px;" />
+                            
+                            <!-- Video preview inside form -->
+                            <div id="addVideoPreviewWrap" style="display:none; position:relative; margin-top:8px; border-radius:8px; overflow:hidden; border:1px solid var(--border-color);">
+                                <video id="prodVideoPreview" controls style="width:100%; max-height:220px; background:#000; display:block;"></video>
+                                <button type="button" class="btn-danger" style="position:absolute; top:6px; right:6px; padding:4px 10px;" onclick="window.shopApp.clearAddVideo()">
+                                    <i class="fas fa-trash"></i> <span data-i18n="removeVideoBtn">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="margin-top:10px;"><i class="fas fa-save"></i> <span data-i18n="addBtn">Add Product</span></button>
+                    </form>
+                </div>
+
+                <!-- SUB-TAB 2: ADD CATEGORY -->
+                <div id="subTabAddCategory" style="display:none; max-width:640px;">
+                    <div class="settings-section" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-tags" style="color:var(--accent);"></i> <span data-i18n="tabAddCategory">زیادکردنی پۆل</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:14px;">
+                            لێرە دەتوانیت پۆلی نوێ بۆ کاڵاکان زیاد بکەیت و هەموو پۆلەکان بەڕێوەببەیت:
+                        </p>
+                        
+                        <!-- ADD CATEGORY FORM -->
+                        <div style="background:var(--bg-card); padding:16px; border-radius:var(--radius); border:1px solid var(--border-color); margin-bottom:18px;">
+                            <div style="font-weight:700; font-size:0.95rem; margin-bottom:14px; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-plus-circle" style="color:var(--accent);"></i> فۆرمی زیادکردنی پۆلی نوێ
+                            </div>
+
+                            <!-- 1. ناو (CATEGORY NAME) -->
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <label style="font-size:0.86rem; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-tag" style="color:var(--accent);"></i> ناوی پۆل *
+                                </label>
+                                <input type="text" id="newCatName" placeholder="ناوی پۆل بنووسە (نموونە: کاتژمێر، جلوبەرگ، پێڵاو، مۆبایل...)" style="width:100%; padding:10px 14px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:0.92rem; font-family:var(--font);" />
+                            </div>
+
+                            <!-- 2. ئایکۆن یان ئیمۆجی (ICON OR EMOJI) -->
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <label style="font-size:0.86rem; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-icons" style="color:var(--accent);"></i> ئایکۆن یان ئیمۆجی
+                                </label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <input type="text" id="newCatIcon" placeholder="📦" value="📦" style="width:75px; text-align:center; padding:8px 10px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:1.2rem; font-family:var(--font);" />
+                                    <span style="font-size:0.8rem; color:var(--text-muted);">ئیمۆجییەکی خێرا هەڵبژێرە:</span>
+                                </div>
+                                <div class="cat-quick-emojis" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('📦')">📦</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('👗')">👗</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('👕')">👕</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('⌚')">⌚</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('👟')">👟</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('👜')">👜</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('👓')">👓</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('💍')">💍</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('📱')">📱</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('💄')">💄</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('🎧')">🎧</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('🏡')">🏡</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('🚗')">🚗</button>
+                                    <button type="button" class="quick-emoji-btn" onclick="window.shopApp.selectCatEmoji('✨')">✨</button>
+                                </div>
+                            </div>
+
+                            <!-- 3. وێنە هەڵبژاردن چوزفایل (CHOOSE FILE IMAGE SELECTION) -->
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <label style="font-size:0.86rem; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="display:flex; align-items:center; gap:6px;">
+                                        <i class="fas fa-image" style="color:var(--accent);"></i> وێنەی پۆل (هەڵبژاردنی وێنە - Choose File)
+                                    </span>
+                                </label>
+                                
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                        <label for="newCatImageFile" class="btn-secondary" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:8px 16px; font-size:0.88rem; border-radius:var(--radius-sm); border:1px solid var(--accent); background:var(--accent-glow); color:var(--accent); font-weight:600;">
+                                            <i class="fas fa-folder-open"></i> <span>Choose File / هەڵبژاردنی وێنە</span>
+                                        </label>
+                                        <input type="file" id="newCatImageFile" accept="image/*" style="display:none;" onchange="window.shopApp.handleCatImageFile(event)" />
+                                        <span id="catImageFileLabel" style="font-size:0.82rem; color:var(--text-muted);">هیچ وێنەیەک دیاری نەکراوە</span>
+                                    </div>
+                                    
+                                    <!-- Image Preview Card -->
+                                    <div id="catImagePreviewState" style="display:none; align-items:center; gap:12px; background:var(--bg-input); padding:10px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-color); width:fit-content; max-width:100%;">
+                                        <img id="catImagePreviewImg" src="" alt="Category Preview" style="width:54px; height:54px; border-radius:8px; object-fit:cover; border:2px solid var(--accent);" />
+                                        <div>
+                                            <div id="catImageFileName" style="font-size:0.84rem; font-weight:600; color:var(--text-primary); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+                                            <button type="button" class="btn-secondary" style="padding:3px 8px; font-size:0.75rem; color:#ef4444; border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); margin-top:4px; display:inline-flex; align-items:center; gap:4px;" onclick="window.shopApp.removeCatImage()">
+                                                <i class="fas fa-trash-alt"></i> سڕینەوەی وێنە
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-primary" style="width:100%; justify-content:center; padding:10px 16px; font-size:0.92rem;" onclick="window.shopApp.addCategory()">
+                                <i class="fas fa-plus"></i> <span data-i18n="addCategoryBtn">زیادکردنی پۆل</span>
+                            </button>
+                        </div>
+
+                        <!-- CURRENT CATEGORIES LIST -->
+                        <div>
+                            <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px; color:var(--text-primary);">
+                                <i class="fas fa-list" style="color:var(--accent);"></i> پۆلە بەردەستەکان (سڕینەوە یان بینین)
+                            </div>
+                            <div class="category-list-edit" id="categoryListEdit"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE: SETTINGS (ADMIN) -->
+            <section class="page" id="page-settings">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+                    <h2 style="margin:0;"><i class="fas fa-cog" style="color:var(--accent);"></i> <span data-i18n="settingsTitle">Settings</span></h2>
+                    <div class="settings-header-actions">
+                        <button class="backup-btn" onclick="window.shopApp.backupData()"><i class="fas fa-download"></i> Backup</button>
+                        <button class="restore-btn" onclick="document.getElementById('restoreFileInput').click()"><i class="fas fa-upload"></i> Restore</button>
+                        <input type="file" id="restoreFileInput" class="hidden-file-input" accept=".json" onchange="window.shopApp.restoreData(event)" />
+                    </div>
+                </div>
+
+                <!-- 6 SEPARATE SUB-TABS: CONTACT INFO, NAME & LOGO, CHANGE PASSWORD, PROMO CODES, DELIVERY FEES, SOUND -->
+                <div class="settings-subtabs" id="settingsSubTabs">
+                    <button type="button" class="settings-subtab-btn active" id="tabBtnSettingsContact" onclick="window.shopApp.switchSettingsSubTab('contact')">
+                        <i class="fas fa-address-card"></i> <span data-i18n="tabContactInfo">زانیاری پەیوەندی</span>
+                    </button>
+                    <button type="button" class="settings-subtab-btn" id="tabBtnSettingsNameLogo" onclick="window.shopApp.switchSettingsSubTab('namelogo')">
+                        <i class="fas fa-store"></i> <span data-i18n="tabNameAndLogo">گۆڕینی ناو و لۆگۆ</span>
+                    </button>
+                    <button type="button" class="settings-subtab-btn" id="tabBtnSettingsPassword" onclick="window.shopApp.switchSettingsSubTab('password')">
+                        <i class="fas fa-key"></i> <span data-i18n="tabChangePassword">گۆڕینی پاسۆرد</span>
+                    </button>
+                    <button type="button" class="settings-subtab-btn" id="tabBtnSettingsDelivery" onclick="window.shopApp.switchSettingsSubTab('delivery')">
+                        <i class="fas fa-truck"></i> <span data-i18n="tabDeliveryFees">تێچووی گەیاندن</span>
+                    </button>
+                    <button type="button" class="settings-subtab-btn" id="tabBtnSettingsSound" onclick="window.shopApp.switchSettingsSubTab('sound')">
+                        <i class="fas fa-volume-up"></i> <span data-i18n="soundNotification">دەنگی ئاگاداری</span>
+                    </button>
+                </div>
+
+                <!-- SUB-TAB 1: CONTACT INFORMATION -->
+                <div id="subTabSettingsContact" style="max-width:680px;">
+                    <div class="settings-section" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-address-card" style="color:var(--accent);"></i> <span data-i18n="contactInfoLabel">Contact Information</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:12px;">
+                            زانیارییەکانی پەیوەندیکردن بە فرۆشگاکەت نوێ بکەرەوە کە بۆ کڕیاران لە بەشی پەیوەندی نیشان دەدرێت:
+                        </p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div class="form-group">
+                                <label data-i18n="addressLabel">Address</label>
+                                <input type="text" id="contactAddress" class="contact-input" />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="phoneLabel">Phone</label>
+                                <input type="text" id="contactPhone" class="contact-input" />
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-telegram" style="color:#229ED9; font-size:1.1rem; vertical-align:middle; margin-left:4px;"></i> <span data-i18n="telegramLabel">Telegram</span></label>
+                                <input type="text" id="contactTelegram" class="contact-input" placeholder="https://t.me/..." />
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-snapchat" style="color:#facc15; background:#000; border-radius:4px; padding:2px; font-size:1rem; vertical-align:middle; margin-left:4px;"></i> <span data-i18n="snapchatLabel">Snapchat</span></label>
+                                <input type="text" id="contactSnapchat" class="contact-input" placeholder="https://snapchat.com/add/..." />
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-tiktok" style="color:var(--text-primary); font-size:1.1rem; vertical-align:middle; margin-left:4px;"></i> <span data-i18n="tiktokLabel">TikTok</span></label>
+                                <input type="text" id="contactTiktok" class="contact-input" placeholder="https://tiktok.com/@..." />
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="websiteLabel">Website</label>
+                                <input type="text" id="contactWebsite" class="contact-input" />
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label data-i18n="hoursLabel">Working Hours</label>
+                                <input type="text" id="contactHours" class="contact-input" />
+                            </div>
+                        </div>
+                        <button class="btn-primary small" style="margin-top:12px;" onclick="window.shopApp.saveContactInfo()"><i class="fas fa-save"></i> <span data-i18n="saveContactBtn">Save Contact Info</span></button>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 2: CHANGE NAME & LOGO -->
+                <div id="subTabSettingsNameLogo" style="display:none; max-width:680px;">
+                    <div class="settings-section" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-store" style="color:var(--accent);"></i> <span data-i18n="shopNameLabel">Shop Name</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:12px;">
+                            دەستکاری ناوی فەرمی فرۆشگا لە بەشی سەرەوە و باکاپەکاندا:
+                        </p>
+                        <div class="inline-flex">
+                            <input type="text" id="shopNameInput" style="flex:1; padding:10px 14px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:0.95rem; font-family:var(--font);" placeholder="Enter shop name..." />
+                            <button class="btn-primary small" onclick="window.shopApp.updateShopName()"><i class="fas fa-check"></i> <span data-i18n="saveBtn">Save</span></button>
+                        </div>
+
+                        <!-- SHOP LOGO PREVIEW & CHANGE -->
+                        <div class="settings-logo-box" style="display:flex; align-items:center; gap:12px; margin-top:16px; padding:14px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+                            <img src="/derin-logo.svg" alt="Logo Preview" class="brand-logo-img" id="settingsLogoPreview" style="width:52px; height:52px;" />
+                            <div style="flex:1;">
+                                <div style="font-weight:700; font-size:0.92rem; margin-bottom:2px;">لۆگۆی گشتی فرۆشگا (Shop Logo)</div>
+                                <div style="font-size:0.8rem; color:var(--text-secondary);">لێرە دەتوانیت وێنەی لۆگۆی فرۆشگاکەت لەسەرەوە بگۆڕیت</div>
+                            </div>
+                            <button type="button" class="btn-secondary small" onclick="document.getElementById('shopLogoFileInput').click()"><i class="fas fa-image"></i> <span data-i18n="changeLogoBtn">گۆڕینی وێنە</span></button>
+                            <input type="file" id="shopLogoFileInput" class="hidden-file-input" accept="image/*" onchange="window.shopApp.changeShopLogo(event)" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 3: CHANGE CREDENTIALS (USERNAME & PASSWORD) -->
+                <div id="subTabSettingsPassword" style="display:none; max-width:680px;">
+                    <div class="settings-section" id="changePasswordSection" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-user-lock" style="color:var(--accent);"></i> <span data-i18n="changeCredentialsLabel">گۆڕینی ناوی بەکارهێنەر و پاسۆرد</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:12px;">
+                            گۆڕینی ناوی بەکارهێنەر و وشەی تێپەڕی بەڕێوەبەر بۆ چوونەژوورەوەی پارێزراو:
+                        </p>
+                        <div class="form-group">
+                            <label data-i18n="adminUsernameLabel">ناوی بەکارهێنەر (Username)</label>
+                            <input type="text" id="settingAdminUsername" class="contact-input" />
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="currentPasswordLabel">Current Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="currentPassword" class="contact-input" placeholder="پاسۆردی ئێستا..." />
+                                <button type="button" class="toggle-password" onclick="window.shopApp.togglePassword('currentPassword', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="newPasswordLabel">New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="newPassword" class="contact-input" placeholder="پاسۆردی نوێ (بە بەتاڵی بهێڵەرەوە ئەگەر ناتەوێت بیگۆڕیت)..." />
+                                <button type="button" class="toggle-password" onclick="window.shopApp.togglePassword('newPassword', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="confirmPasswordLabel">Confirm New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmPassword" class="contact-input" placeholder="دووبارە نووسینەوەی پاسۆردی نوێ..." />
+                                <button type="button" class="toggle-password" onclick="window.shopApp.togglePassword('confirmPassword', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn-primary small" onclick="window.shopApp.changePassword()"><i class="fas fa-save"></i> <span data-i18n="saveBtn">Save</span></button>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 4: DELIVERY FEES (CUSTOMIZE PER CITY) -->
+                <div id="subTabSettingsDelivery" style="display:none; max-width:680px;">
+                    <div class="settings-section" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-truck" style="color:var(--accent);"></i> <span data-i18n="deliveryFeesTitle">دیاریکردنی نرخی گەیاندنی شارەکان</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:14px;" data-i18n="deliveryFeesDesc">
+                            لێرە دەتوانیت نرخی گەیاندن (دیلیڤەری) بۆ هەر شارێک بە دڵی خۆت دیاری بکەیت و پاشەکەوتی بکەیت:
+                        </p>
+
+                        <!-- Cities list editor table/card -->
+                        <div id="cityDeliveryListContainer" class="city-delivery-list" style="margin-bottom:16px;"></div>
+
+                        <!-- Add custom city form -->
+                        <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border-color); margin-bottom:16px;">
+                            <div style="font-weight:700; font-size:0.92rem; margin-bottom:10px; color:var(--text-primary);">
+                                <i class="fas fa-plus-circle" style="color:var(--accent);"></i> <span data-i18n="addCustomCity">زیادکردنی شاری نوێ</span>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:0.82rem;" data-i18n="cityNameLabel">ناوی شار *</label>
+                                    <input type="text" id="newCityName" placeholder="نموونە: چەمچەماڵ" style="padding:9px 12px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:0.9rem; font-family:var(--font);" />
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:0.82rem;" data-i18n="cityFeeLabel">تێچووی گەیاندن (د.ع) *</label>
+                                    <input type="number" id="newCityFee" placeholder="نموونە: 4000" step="500" min="0" style="padding:9px 12px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:0.9rem; font-family:var(--font);" />
+                                </div>
+                            </div>
+                            <button type="button" class="btn-secondary small" onclick="window.shopApp.addCustomCity()"><i class="fas fa-plus"></i> <span data-i18n="addCustomCity">زیادکردنی شار</span></button>
+                        </div>
+
+                        <button type="button" class="btn-primary" style="padding:12px 24px;" onclick="window.shopApp.saveDeliveryFees()">
+                            <i class="fas fa-save"></i> <span data-i18n="saveDeliveryFeesBtn">پاشەکەوتکردنی نرخی شارەکان</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 6: SOUND NOTIFICATIONS -->
+                <div id="subTabSettingsSound" style="display:none; max-width:680px;">
+                    <div class="settings-section" style="margin-top:0;">
+                        <h3 style="margin-bottom:6px;"><i class="fas fa-volume-up" style="color:var(--accent);"></i> <span data-i18n="soundNotification">دەنگی ئاگادارکردنەوەی داواکاری</span></h3>
+                        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:14px;">
+                            کاتێک کڕیارێک داواکارییەکی نوێ دەنێرێت، سیستەمەکە ئاگادارت دەکاتەوە بە دەنگێکی مۆدێرن:
+                        </p>
+
+                        <div style="background:var(--bg-card); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:44px; height:44px; border-radius:50%; background:rgba(var(--accent-rgb), 0.12); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:1.3rem;">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; font-size:0.96rem;">لێدانی دەنگی زەنگ بۆ داواکارییە نوێیەکان</div>
+                                    <div style="font-size:0.82rem; color:var(--text-secondary);" id="soundSettingsStatusText">دەنگ چالاکە و کاردەکات</div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-primary small" id="soundToggleSettingBtn" onclick="window.shopApp.toggleSound()">
+                                <i class="fas fa-volume-up"></i> <span id="soundToggleSettingLabel">کوژاندنەوە</span>
+                            </button>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn-secondary" onclick="window.shopApp.testSound()">
+                                <i class="fas fa-play"></i> <span data-i18n="testSound">تاقیکردنەوەی دەنگ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE: CART (USER) -->
+            <section class="page" id="page-cart">
+                <h2 style="margin-bottom:12px;"><i class="fas fa-shopping-cart" style="color:var(--accent);"></i> <span data-i18n="cartTitle">My Cart</span></h2>
+                <div id="cartContent"></div>
+            </section>
+
+            <!-- PAGE: MY ORDERS (USER) -->
+            <section class="page" id="page-myorders">
+                <h2 style="margin-bottom:12px;"><i class="fas fa-list-ul" style="color:var(--accent);"></i> <span data-i18n="myOrdersLabel">My Orders</span></h2>
+                <div id="userOrdersDisplay" class="my-orders-list"></div>
+            </section>
+
+            <!-- PAGE: CONTACT (USER) -->
+            <section class="page" id="page-contact">
+                <h2 style="margin-bottom:12px;"><i class="fas fa-address-card" style="color:var(--accent);"></i> <span data-i18n="contactInfoLabel">Contact Information</span></h2>
+                <div class="contact-info" id="userContactDisplay"></div>
+            </section>
+
+        </main>
+
+        <!-- MOBILE BOTTOM NAVIGATION (MATCHING IMG_2236.jpeg) -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="active" data-page="products">
+                <div class="nav-icon-wrap"><i class="fas fa-home"></i></div>
+                <span data-i18n="navProducts">Shop</span>
+            </button>
+            <button data-page="orders" id="bottomNavOrders">
+                <div class="nav-icon-wrap">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="badge" id="bottomOrderBadge" style="display:none;"></span>
+                </div>
+                <span data-i18n="navOrders">Orders</span>
+            </button>
+            <button data-page="add" id="bottomNavAdd">
+                <div class="nav-icon-wrap"><i class="fas fa-plus-circle"></i></div>
+                <span data-i18n="navAdd">Add</span>
+            </button>
+            <button data-page="settings" id="bottomNavSettings">
+                <div class="nav-icon-wrap"><i class="fas fa-cog"></i></div>
+                <span data-i18n="navSettings">Settings</span>
+            </button>
+            <button data-page="cart" id="bottomNavCart" style="display:none;">
+                <div class="nav-icon-wrap">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge" id="bottomCartBadge">0</span>
+                </div>
+                <span data-i18n="navCart">Cart</span>
+            </button>
+            <button data-page="myorders" id="bottomNavMyOrders" style="display:none;">
+                <div class="nav-icon-wrap">
+                    <i class="fas fa-list-ul"></i>
+                    <span class="badge" id="bottomMyOrdersBadge" style="display:none;"></span>
+                </div>
+                <span data-i18n="myOrdersLabel">My Orders</span>
+            </button>
+            <button data-page="contact" id="bottomNavContact" style="display:none;">
+                <div class="nav-icon-wrap"><i class="fas fa-address-card"></i></div>
+                <span data-i18n="navContact">Contact</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- MODAL: PLACE ORDER -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-shopping-cart" style="color:var(--accent);"></i> <span data-i18n="orderTitle">Place Order</span></h2>
+                <button class="close-btn" onclick="window.shopApp.closeModal()">&times;</button>
+            </div>
+            <form id="orderForm">
+                <input type="hidden" id="orderProductId" />
+                <div class="form-group">
+                    <label data-i18n="productLabel">Product</label>
+                    <input type="text" id="orderProductName" disabled style="opacity:0.7;" />
+                </div>
+                <div class="form-group">
+                    <label data-i18n="customerNameLabel">Customer Name *</label>
+                    <input type="text" id="orderCustomerName" placeholder="Full name" required />
+                </div>
+                <div class="form-group">
+                    <label data-i18n="phoneLabel">Phone Number *</label>
+                    <input type="tel" id="orderPhone" placeholder="07xx xxx xxxx" required />
+                </div>
+                <div class="form-group">
+                    <label data-i18n="cityLabel">City / Region *</label>
+                    <select id="orderCity" required onchange="window.shopApp.onOrderCityChange()"></select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="addressLabel">Address *</label>
+                    <textarea id="orderAddress" rows="2" placeholder="e.g. Sulaymaniyah, Sarchinar" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label data-i18n="qtyLabel">Quantity *</label>
+                        <input type="number" id="orderQty" value="1" min="1" required oninput="window.shopApp.updateOrderModalCalculations()" />
+                    </div>
+                    <div class="form-group" id="orderStatusGroup" style="display:none; flex:1;">
+                        <label data-i18n="statusLabel">Status</label>
+                        <select id="orderStatus">
+                            <option value="pending" data-i18n="statusPending">Pending</option>
+                            <option value="completed" data-i18n="statusCompleted">Completed</option>
+                            <option value="cancelled" data-i18n="statusCancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- ORDER COST BREAKDOWN -->
+                <div class="checkout-summary-card" id="orderSummaryBreakdown" style="margin-bottom:14px;"></div>
+                <button type="submit" class="btn-primary"><i class="fas fa-check-circle"></i> <span data-i18n="submitOrderBtn">Submit Order</span></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT PRODUCT (WITH VIDEO EDITING) -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit" style="color:var(--accent);"></i> <span data-i18n="editTitle">Edit Product</span></h2>
+                <button class="close-btn" onclick="window.shopApp.closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editProductId" />
+                <div class="form-group">
+                    <label data-i18n="prodNameLabel">Product Name *</label>
+                    <input type="text" id="editName" required />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="prodCategoryLabel">Category *</label>
+                        <select id="editCategory" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="prodPriceLabel">Price (IQD) *</label>
+                        <input type="number" id="editPrice" required />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="prodStockStatusLabel">Stock Status *</label>
+                        <select id="editStockStatus" required>
+                            <option value="in-stock" data-i18n="stockIn">In Stock</option>
+                            <option value="out-of-stock" data-i18n="stockOut">Out of Stock</option>
+                            <option value="soon" data-i18n="stockSoon">Coming Soon</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="prodDiscountLabel">Discount %</label>
+                        <input type="number" id="editDiscount" min="0" max="90" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="prodDescLabel">Description</label>
+                    <textarea id="editDesc" rows="2"></textarea>
+                </div>
+
+                <!-- Video editing -->
+                <div class="form-group" style="background:var(--bg-input); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                    <label style="color:var(--accent); font-weight:700;"><i class="fas fa-video"></i> <span data-i18n="prodVideoLabel">Product Video</span></label>
+                    <div class="file-input-wrap" style="margin-bottom:6px;">
+                        <input type="file" id="editVideoFile" accept="video/*" />
+                    </div>
+                    <input type="url" id="editVideoUrl" placeholder="Or paste video link (https://...mp4)" style="margin-bottom:6px;" />
+                    <div id="editVideoPreviewWrap" style="display:none; position:relative; margin-top:6px;">
+                        <video id="editVideoPreview" controls style="width:100%; max-height:180px; border-radius:var(--radius-sm); background:#000;"></video>
+                        <button type="button" class="btn-danger" style="position:absolute; top:6px; right:6px; padding:3px 8px;" onclick="window.shopApp.clearEditVideo()">
+                            <i class="fas fa-trash"></i> <span data-i18n="removeVideoBtn">Remove</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="margin-top:10px;"><i class="fas fa-save"></i> <span data-i18n="saveBtn">Save</span></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: USER INFORMATION FOR CHECKOUT -->
+    <div class="modal-overlay user-info-modal" id="userInfoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-edit" style="color:var(--accent);"></i> <span data-i18n="userInfoTitle">Your Information</span></h2>
+                <button class="close-btn" onclick="window.shopApp.closeUserInfoModal()">&times;</button>
+            </div>
+            <form id="userInfoForm">
+                <div class="form-group">
+                    <label data-i18n="customerNameLabel">Full Name *</label>
+                    <input type="text" id="userInfoName" placeholder="e.g. Ahmed Karim" required />
+                </div>
+                <div class="form-group">
+                    <label data-i18n="phoneLabel">Phone Number *</label>
+                    <input type="tel" id="userInfoPhone" placeholder="07xx xxx xxxx" required />
+                </div>
+                <div class="form-group">
+                    <label data-i18n="cityLabel">City / Region *</label>
+                    <select id="userInfoCity" required onchange="window.shopApp.onUserInfoCityChange()"></select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="addressLabel">Address *</label>
+                    <textarea id="userInfoAddress" rows="2" placeholder="e.g. Sulaymaniyah, Sarchinar" required></textarea>
+                </div>
+                <!-- CART COST BREAKDOWN -->
+                <div class="checkout-summary-card" id="userInfoCostBreakdown" style="margin-bottom:14px;"></div>
+                <button type="submit" class="btn-primary"><i class="fas fa-check-circle"></i> <span data-i18n="submitOrderBtn">Submit Order</span></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- USER REQUEST: MODAL TO WATCH PRODUCT VIDEO WITH RETURN BUTTON (AS SHOWN IN IMG_2228.jpeg) -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal video-modal-dialog">
+            <div class="modal-header">
+                <h2 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-play-circle" style="color:var(--accent);"></i>
+                    <span data-i18n="videoModalTitle">Product Video</span>
+                </h2>
+                <button class="close-btn" onclick="window.shopApp.closeVideoModal()" title="Close">&times;</button>
+            </div>
+
+            <!-- Video Player -->
+            <div class="video-player-container">
+                <video id="modalVideoPlayer" controls playsinline controlslist="nodownload">
+                    <source id="modalVideoSource" src="" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+            </div>
+
+            <!-- Product details below video (matches screenshot IMG_2228.jpeg layout) -->
+            <div class="video-info-box">
+                <div class="video-meta-row">
+                    <h3 id="videoModalProductTitle">Product Title</h3>
+                    <div id="videoModalProductPrice"></div>
+                </div>
+                <p id="videoModalProductDesc" class="video-desc"></p>
+
+                <!-- Order and Cart actions directly inside video view -->
+                <div class="video-modal-actions" id="videoModalActions"></div>
+            </div>
+
+            <!-- USER REQUEST: دوگمەی گەرانەوە بۆ پەرەی سەرەکی هەبێت -->
+            <button type="button" class="btn-return-home" onclick="window.shopApp.returnToHomePageFromVideo()">
+                <i class="fas fa-home"></i>
+                <span data-i18n="backToHomeBtn">گەڕانەوە بۆ پەڕەی سەرەکی</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- USER REQUEST: MODAL TO CONFIRM DELETION (SOLVES IFRAME BLOCKED CONFIRM()) -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal confirm-modal-box">
+            <div class="confirm-modal-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 id="confirmModalTitle">سڕینەوەی داواکاری</h3>
+            <p id="confirmModalMessage">ئایا دڵنیایت لە سڕینەوەی ئەم داواکارییە؟</p>
+            <div class="confirm-modal-actions">
+                <button type="button" class="btn-secondary" onclick="window.shopApp.closeConfirmModal()">نەخێر، پەشیمانم</button>
+                <button type="button" class="btn-danger" id="confirmModalActionBtn" onclick="window.shopApp.executeConfirmAction()">بەڵێ، بسڕەوە</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div class="modal-overlay" id="adminLoginModal" style="display:none;">
+        <div class="modal admin-login-dialog" style="max-width:390px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-shield" style="color:var(--accent);"></i> <span data-i18n="adminLoginTitle">چوونەژوورەوەی بەڕێوەبەر</span></h2>
+                <button class="close-btn" onclick="window.shopApp.closeAdminLoginModal()" title="داخستن">&times;</button>
+            </div>
+            <div class="login-box" style="box-shadow:none; padding:12px 0 0; border:none; background:transparent;">
+                <div class="login-brand-logo-wrap" style="margin-bottom:12px;">
+                    <img src="/derin-logo.svg" alt="Shop Logo" class="login-brand-logo-img" style="width:72px; height:72px;" />
+                </div>
+                <h3 style="text-align:center; margin-bottom:4px; font-size:1.1rem;"><span id="modalLoginTitle">Derin__Collection</span></h3>
+                <p style="color:var(--text-secondary); text-align:center; margin-bottom:16px; font-size:0.88rem;" data-i18n="adminLoginSub">تکایە ناوی بەکارهێنەر و وشەی نهێنی بنووسە بۆ چوونەژوورەوە</p>
+                
+                <form id="adminModalLoginForm" onsubmit="event.preventDefault(); window.shopApp.handleAdminModalLogin();">
+                    <div class="form-group" style="text-align:right;">
+                        <label style="display:block; margin-bottom:6px; font-weight:600; font-size:0.9rem;" data-i18n="adminUsernameLabel">ناوی بەکارهێنەر (Username)</label>
+                        <div class="password-wrapper" style="position:relative;">
+                            <input type="text" id="modalAdminUsername" autocomplete="username" style="width:100%; padding-left:14px; padding-right:14px;" />
+                        </div>
+                    </div>
+                    <div class="form-group" style="text-align:right;">
+                        <label style="display:block; margin-bottom:6px; font-weight:600; font-size:0.9rem;" data-i18n="passwordLabel">وشەی نهێنی (Password)</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="modalAdminPassword" autocomplete="current-password" />
+                            <button type="button" class="toggle-password" onclick="window.shopApp.togglePassword('modalAdminPassword', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" id="modalAdminLoginBtn" style="margin-top:14px; width:100%; justify-content:center;">
+                        <i class="fas fa-sign-in-alt"></i> <span data-i18n="loginBtn">چوونەژوورەوە</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ORDER SUCCESS & WHATSAPP QUICK ORDER (Feature 1) -->
+    <div class="modal-overlay" id="orderSuccessModal" style="display:none;">
+        <div class="modal order-success-modal-dialog" style="max-width:480px; text-align:center;">
+            <div class="order-success-icon" style="font-size:3rem; color:#10b981; margin:8px auto 12px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="margin-bottom:8px; font-size:1.3rem;" data-i18n="orderSuccessDialogTitle">Order Placed Successfully! 🎉</h2>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:14px; line-height:1.6;" data-i18n="orderSuccessMessage">
+                داواکارییەکەت لە سیستەمەکە تۆمارکرا. دەتوانیت بە یەک کلیک لە ڕێگەی واتسئاپیشەوە کورتەکەی بنێریت بۆ ئەوەی خێراتر بگاتە دەستت:
+            </p>
+            <div id="orderSuccessSummaryBox" class="order-success-summary-box"></div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+                <a href="#" id="orderSuccessWhatsAppBtn" target="_blank" class="btn-whatsapp-large" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#25D366; color:#fff; font-weight:700; padding:12px 18px; border-radius:8px; text-decoration:none; font-size:1rem; box-shadow:0 4px 14px rgba(37,211,102,0.35);">
+                    <i class="fab fa-whatsapp" style="font-size:1.35rem;"></i>
+                    <span data-i18n="sendToWhatsAppBtn">ناردنی داواکاری بۆ واتسئاپ</span>
+                </a>
+                <button type="button" class="btn-secondary" onclick="window.shopApp.closeOrderSuccessModal()" style="width:100%; justify-content:center;">
+                    <i class="fas fa-times"></i> <span data-i18n="closeBtn">داخستن</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: OFFICIAL ORDER INVOICE (Feature 4) -->
+    <div class="modal-overlay" id="invoiceModal" style="display:none;">
+        <div class="modal invoice-modal-dialog" style="max-width:680px; width:95%; max-height:92vh; overflow-y:auto;">
+            <div class="modal-header no-print">
+                <h2><i class="fas fa-file-invoice" style="color:var(--accent);"></i> <span data-i18n="invoiceTitle">پسوولەی داواکاری</span></h2>
+                <button class="close-btn" onclick="window.shopApp.closeInvoiceModal()">&times;</button>
+            </div>
+            
+            <!-- PRINTABLE INVOICE WRAPPER -->
+            <div id="invoicePrintArea" class="invoice-container">
+                <!-- Content populated dynamically by renderInvoiceContent(orderId) -->
+            </div>
+
+            <div class="invoice-modal-actions no-print" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border-color); position:sticky; bottom:0; background:var(--bg-card); z-index:10; flex-wrap:wrap;">
+                <button type="button" class="btn-primary" id="invoicePrintActionBtn" onclick="window.shopApp.triggerPrintInvoice()" style="min-height:42px; padding:10px 20px; font-size:0.95rem; cursor:pointer; gap:8px; display:inline-flex; align-items:center;">
+                    <i class="fas fa-print"></i> <span>چاپکردن</span>
+                </button>
+                <button type="button" class="btn-primary" id="invoicePdfActionBtn" onclick="window.shopApp.downloadInvoicePdf()" style="min-height:42px; padding:10px 20px; font-size:0.95rem; cursor:pointer; gap:8px; display:inline-flex; align-items:center; background:#e11d48; border-color:#e11d48;">
+                    <i class="fas fa-file-pdf"></i> <span>داگرتنی PDF</span>
+                </button>
+                <button type="button" class="btn-secondary" onclick="window.shopApp.closeInvoiceModal()" style="min-height:42px; padding:10px 18px; font-size:0.95rem; cursor:pointer;">
+                    <i class="fas fa-times"></i> <span data-i18n="closeBtn">داخستن</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- PERSISTENT NETWORK STATUS CHIP -->
+    <div id="networkStatusBanner" class="network-status-banner" style="display:none;">
+        <span id="networkStatusIcon"><i class="fas fa-wifi"></i></span>
+        <span id="networkStatusText">ئۆنلاین</span>
+    </div>
+
+    <!-- APP ENTRYPOINT -->
+    <script type="module" src="/src/shop.js"></script>
+
+    <!-- REACT ROOT -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- SERVICE WORKER REGISTRATION (Offline & Slow-Connection Booster) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
+        }
+    </script>
+</body>
+</html>
